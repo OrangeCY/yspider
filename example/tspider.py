@@ -61,7 +61,7 @@ def req(url):
         resp = session.get(url,headers=header, timeout=60)
         return resp.content
     except Exception as e:
-        raise parser_except.ParserException(22, "retry !!!")
+        raise .ParserException(22, "retry !!!")
 
 
 def parse(html):

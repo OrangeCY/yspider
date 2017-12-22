@@ -5,10 +5,11 @@
 # @Software: PyCharm
 
 import requests
+import os
 
-def simple_get_http_proxy():
-    r = requests.get('http://10.10.239.46:8087/proxy?user=crawler&passwd=spidermiaoji2014&source={0}'.
-                     format('testHttpProxyOnly'))
+def simple_get_http_proxy(url=os.environ['proxyurl']):
+    """获取proxy"""
+    r = requests.get(url)
     proxy = r.content.decode()
     print(proxy)
     return proxy
