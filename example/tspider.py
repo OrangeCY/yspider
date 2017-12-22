@@ -4,13 +4,14 @@
 # @Author  : zpy
 # @Software: PyCharm
 
+# 从这第一个程序开始，将中间的步骤抽象出来。
 
 from pymongo import MongoClient
 from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy
+from yspider.units import simple_get_http_proxy, retry
 
 pool = ThreadPool(2)
 session = requests.session()
@@ -24,21 +25,6 @@ def insert_db(data):
     if data:
         tieba.insert_many(data)
 
-def retry(times=3):
-    """Retry times"""
-    def wrap(func):
-        def do(*args, **kwargs):
-            t = times
-            res = None
-            while t > 0:
-                try:
-                    res = func(*args, **kwargs)
-                    break
-                except Exception:
-                    t -= 1
-            return res
-        return do
-    return wrap
 
 
 @retry()

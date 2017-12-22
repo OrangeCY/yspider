@@ -10,7 +10,8 @@ from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy
+from yspider.units import simple_get_http_proxy, retry
+from yspider.exceptions import SpiderException
 
 pool = ThreadPool(2)
 session = requests.session()
@@ -20,71 +21,15 @@ mongo = MongoClient("mongodb://localhost:27017")
 db = mongo.crawl
 tieba = db.tieba
 
-def insert_db(data):
-    if data:
-        tieba.insert_many(data)
 
 
 
-def req(url):
-    """请求 并将数据拿回来"""
-    print("req ", url)
-    p = simple_get_http_proxy()
-    session.proxies = {
-        'http': 'http://' + p,
-        'https': 'http://' + p,
-    }
-    header = {
-        # 'Accept-Encoding': 'gzip,deflate, sdch',
-        # 'Accept-Language': 'zh-CN,zh;q=0.8,und;q=0.6',
-        # 'Cache-Control': 'max-age=0',
-        # 'Connection': 'keep-alive',
-    }
-    time.sleep(3)
-    try:
-        resp = session.get(url,headers=header, timeout=60)
-        return resp.content
-    except Exception as e:
-        raise parser_except.ParserException(22, "retry !!!")
-
-
-def parse(html):
-    """解析出几个数据"""
-    res = []
-    print "html-len", len(html)
-    if html:
-        data = HTML.fromstring(html)
-        link = None
-        title = None
-        reqs = None
-        author = None
-        describe = None
-        for i in range(1, 49):
-            try:
-                title = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[1]/a/text()'.format(i))[0]
-                reqs = int(data.xpath('//*[@id="thread_list"]/li[{}]/div/div[1]/span/text()'.format(i))[0])
-                author = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[2]/span[1]/span[1]/a/text()'.format(i))[0]
-                describe = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[2]/div[1]/div/text()'.format(i))[0]
-                link = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[1]/a/@href'.format(i))[0]
-            except Exception:
-                print "wtf"
-            if title is not None:
-                res.append({
-                    "title": title,
-                    "reqs": reqs,
-                    "author": author,
-                    "describe": describe,
-                    "link": link,
-                })
-    print"result - ", len(res)
-    return res
-
-def start(url):
-    html = req(url)
-    pdata = parse(html)
-    insert_db(pdata)
-
-
+@retry()
+def test(x):
+    print(x)
+    for i in range(x):
+        if i == 3:
+            raise SpiderException(3)
 
 
 
@@ -92,7 +37,7 @@ def start(url):
 if __name__ == '__main__':
     # results = pool.map(start, urls)
     # print results
-    for i in urls:
-        start(i)
-
+    # for i in urls:
+    #     start(i)
+    test(10)
 

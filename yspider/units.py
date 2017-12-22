@@ -7,11 +7,12 @@
 import requests
 import os
 
-def simple_get_http_proxy(url=os.environ['proxyurl']):
+def simple_get_http_proxy(url=None):
     """获取proxy"""
+    if url is None:
+        url = os.environ['proxyurl']
     r = requests.get(url)
     proxy = r.content.decode()
-    print(proxy)
     return proxy
 
 def retry(times=3):
@@ -24,8 +25,11 @@ def retry(times=3):
                 try:
                     res = func(*args, **kwargs)
                     break
-                except Exception:
-                    t -= 1
+                except Exception as e:
+                    if e.code == 3:
+                        t -= 1
+                    else:
+                        t -= t
             return res
         return do
     return wrap
