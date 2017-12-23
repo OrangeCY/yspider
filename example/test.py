@@ -4,7 +4,29 @@
 # @Author  : zpy
 # @Software: PyCharm
 
-from sp_except import SpiderException
+
+from yspider.spider import BaseSpider
 
 
-raise SpiderException(2, 'fx')
+class TiebaSpider(BaseSpider):
+
+    def req_resp(self):
+        return {
+            "request":{
+                'url': 'http://yspider.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&pn=100',
+            },
+            "response":{
+                "handler": self.parse_data
+            }
+
+        }
+
+    def parse_data(self, response):
+        pass
+
+
+
+
+
+
+

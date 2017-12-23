@@ -14,11 +14,13 @@ class SpiderException(Exception):
     RETRY = 3
     RETRYBAD = 31
     PARSEBDA = 5
+    TASKERROR = 1
 
     map_error = {
         RETRY: "失败重试",
         RETRYBAD: "重试也失败",
-        PARSEBDA: "解析失败"
+        PARSEBDA: "解析失败",
+        TASKERROR: "请求任务出错",
     }
 
 
