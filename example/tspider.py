@@ -12,14 +12,18 @@ from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
 from yspider.units import simple_get_http_proxy, retry
+from yspider.exceptions import SpiderException
 
-pool = ThreadPool(2)
-session = requests.session()
-urls = ['http://yspider.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&pn={}'.format(i*50) for i in range(2001, 3014)]
-
+# db setting
 mongo = MongoClient("mongodb://localhost:27017")
 db = mongo.crawl
 tieba = db.tieba
+
+# task setting
+pool = ThreadPool(2)
+urls = ['http://yspider.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&pn={}'.format(i*50) for i in range(2001, 3014)]
+session = requests.session()
+
 
 def insert_db(data):
     if data:
@@ -36,24 +40,18 @@ def req(url):
         'http': 'http://' + p,
         'https': 'http://' + p,
     }
-    header = {
-        # 'Accept-Encoding': 'gzip,deflate, sdch',
-        # 'Accept-Language': 'zh-CN,zh;q=0.8,und;q=0.6',
-        # 'Cache-Control': 'max-age=0',
-        # 'Connection': 'keep-alive',
-    }
     time.sleep(3)
     try:
         resp = session.get(url,headers=header, timeout=60)
         return resp.content
     except Exception as e:
-        raise .ParserException(22, "retry !!!")
+        raise SpiderException(SpiderException.RETRY)
 
 
 def parse(html):
     """解析出几个数据"""
     res = []
-    print "html-len", len(html)
+    print("html-len", len(html))
     if html:
         data = HTML.fromstring(html)
         link = None
@@ -69,7 +67,7 @@ def parse(html):
                 describe = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[2]/div[1]/div/text()'.format(i))[0]
                 link = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[1]/a/@href'.format(i))[0]
             except Exception:
-                print "wtf"
+                print("wtf")
             if title is not None:
                 res.append({
                     "title": title,
@@ -78,7 +76,7 @@ def parse(html):
                     "describe": describe,
                     "link": link,
                 })
-    print"result - ", len(res)
+    print("result - ", len(res))
     return res
 
 def start(url):
