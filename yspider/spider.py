@@ -5,27 +5,19 @@
 # @Software: PyCharm
 
 
-from pymongo import MongoClient
 from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
 from yspider.units import simple_get_http_proxy, retry
 from yspider.exceptions import SpiderException
+from functools import wraps
 
-pool = ThreadPool(2)
-session = requests.session()
-urls = ['http://yspider.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&pn={}'.format(i*50) for i in range(2001, 3014)]
-
-mongo = MongoClient("mongodb://localhost:27017")
-db = mongo.crawl
-tieba = db.tieba
 
 
 class BaseSpider:
     """ yspider base class , 使用的使用继承这个类。"""
     def __init__(self):
-        self.session = requests.Session()
         self.header = {}
         self.result = None
 
@@ -62,6 +54,29 @@ class BaseSpider:
     def run(self):
         self._req_resp()
 
+class Browser:
+    """ 模拟浏览器, 具体的请求依靠这个类来实现 """
+
+    def __init__(self):
+        self.session = requests.Session()
+
+    pass
+
+
+def request():
+    """ 通过装饰器来给出可选的配置。 """
+    pass
+
+
+
+
+class ReqParse:
+    """ 请求和解析处理
+        检查请求的格式是否正确，根据写入的请求来处理。
+    """
+
+    def __init__(self):
+        pass
 
 
 @retry()

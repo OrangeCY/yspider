@@ -21,7 +21,7 @@ class TiebaSpider(BaseSpider):
         }
 
     def parse_data(self, resp):
-        print(resp)
+        print(resp.content)
 
 
 if __name__ == '__main__':

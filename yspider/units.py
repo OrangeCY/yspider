@@ -6,6 +6,21 @@
 
 import requests
 import os
+from pymongo import MongoClient
+from yspider.logger import logger
+import time
+from functools import wraps
+
+def func_time_log(func):
+    """纪录运行时间"""
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        start = time.time()
+        res = func(*args, **kwargs)
+        logger.info("%s run %.2f s" % (func.__name__, time.time()-start))
+        return res
+    return wrap
+
 
 def simple_get_http_proxy(url=None):
     """获取proxy"""
@@ -34,6 +49,22 @@ def retry(times=3):
         return do
     return wrap
 
+def init_db(client="mongodb://localhost:27017", db="crawl", coll='crawl'):
+    """初始化mongodb"""
+    mongo = MongoClient(client)
+    db = mongo[db]
+    collection = db[coll]
+    return collection
+
+
+# test units function
+
+@func_time_log
+def func_time_test():
+    time.sleep(0.001)
 
 if __name__ == '__main__':
-    simple_get_http_proxy()
+    # simple_get_http_proxy()
+
+
+    func_time_test()
