@@ -12,7 +12,7 @@ import time
 from functools import wraps
 
 def func_time_log(func):
-    """纪录运行时间"""
+    """记录运行时间, 只保存两位小数字"""
     @wraps(func)
     def wrap(*args, **kwargs):
         start = time.time()
@@ -30,8 +30,8 @@ def simple_get_http_proxy(url=None):
     proxy = r.content.decode()
     return proxy
 
-def retry(times=3):
-    """Retry times"""
+def retry(times=3, code=3):
+    """如果抛错，重试"""
     def wrap(func):
         def do(*args, **kwargs):
             t = times
@@ -41,7 +41,7 @@ def retry(times=3):
                     res = func(*args, **kwargs)
                     break
                 except Exception as e:
-                    if e.code == 3:
+                    if e.code == code:
                         t -= 1
                     else:
                         t -= t

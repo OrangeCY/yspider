@@ -12,6 +12,7 @@ import time
 from yspider.units import simple_get_http_proxy, retry
 from yspider.exceptions import SpiderException
 from functools import wraps
+from collections import deque
 
 
 
@@ -22,18 +23,6 @@ class BaseSpider:
         self.result = None
 
     def req_resp(self):
-        """ 放置请求的函数和 处理返回的函数
-        ex: {
-            "request":{
-                "url": http://xxxx,
-                "header": xxx,
-                ...
-            }
-            "response":{
-                "handler": xxx,
-            }
-        }
-        """
         pass
 
     def _req_resp(self):
@@ -59,11 +48,12 @@ class Browser:
 
     def __init__(self):
         self.session = requests.Session()
+        self.header = {}
 
-    pass
 
 
-def request():
+
+def request(retry=3, retry_code=3):
     """ 通过装饰器来给出可选的配置。 """
     pass
 
@@ -75,8 +65,57 @@ class ReqParse:
         检查请求的格式是否正确，根据写入的请求来处理。
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, func, retry=3, proxy=False, new_session=False, req_length=0):
+        self._req_func = func
+        self.retry = retry
+        self.proxy = proxy
+        self.new_session = new_session
+        self.req_length = req_length
+
+    def parse_func(self):
+        """ 放置请求的函数和 处理返回的函数
+        self._req_func: {
+            "request":{
+                "url": http://xxxx,
+                "header": xxx,
+                ...
+            }
+            "response":{
+                "handler": xxx,
+            }
+        }
+        """
+        r = self._req_func()
+        if 'request' in r and 'response' in r:
+            _req = r['request']
+            _resp = r['response']
+            if 'url' not in _req or 'handler' not in _resp:
+                raise SpiderException(SpiderException.FUNCERROR)
+            else:
+                self.url = _req['url']
+                self.handler = _resp['handler']
+        else:
+            raise SpiderException(SpiderException.FUNCERROR)
+
+
+    def get_browser(self):
+        b = Browser()
+        return b.session
+
+    def run(self):
+        res = []
+        self.parse_func()
+        self.url = deque(self.url)
+        browser = self.get_browser()
+        while True:
+            u = self.url.popleft()
+            resp = browser.get(u)
+            parsed = self.handler(resp)
+            res.append(parsed)
+            yield res
+        # todo : 获取更深的链接，加入执行。
+
+
 
 
 @retry()
