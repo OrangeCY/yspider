@@ -54,12 +54,15 @@ class BaseSpider:
             raise SpiderException(SpiderException.TASKERROR)
         header = req.get('header', {})
         handler = spider_info['response']['handler']
-
+        print(url)
         resp = self.session.get(url, headers=header)
+
         self.result = handler(resp)
 
     def run(self):
         self._req_resp()
+
+
 
 @retry()
 def test(x):

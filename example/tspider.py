@@ -5,6 +5,11 @@
 # @Software: PyCharm
 
 # 从这第一个程序开始，将中间的步骤抽象出来。
+# 使用的时候只需要关心如何构造请求 如何解析， 保存数据。
+
+
+
+
 
 from pymongo import MongoClient
 from lxml import html as HTML
