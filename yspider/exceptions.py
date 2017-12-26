@@ -38,6 +38,6 @@ class SpiderException(Exception):
 
 
 if __name__ == '__main__':
-    s = SpiderException(SpiderException.RETRY)
+    s = SpiderException(SpiderException.RETRY, 'wtf')
     raise s
 

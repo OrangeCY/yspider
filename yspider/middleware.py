@@ -13,6 +13,8 @@
 from collections import namedtuple
 from yspider.spider import BaseSpider, request
 from lxml import html as HTML
+from pprint import pprint
+from yspider.logger import logger
 
 def convert_handle(res_resp):
     """ 从一个namedtuple中获取处理的方法
@@ -22,16 +24,16 @@ def convert_handle(res_resp):
         """ 三种类型的 html json xpath"""
         data = data.content
         xdata = HTML.fromstring(data)
-        print(dir(res_resp))
         for r in dir(res_resp):
             i = r.split('_')
             if i[0] == 'handler':
                 try: # 先只考虑xpath的
                     name = 'result_' + i[1]
-                    _res = "_".join(xdata.xpath(res_resp[r]))
+                    _res = "_".join(xdata.xpath(getattr(res_resp, r)))
+                    pprint(_res)
                     setattr(res_resp, name, _res)
                 except Exception as e:
-                    print(e)
+                    logger.info('parse handler -- {}'.format(e))
                     setattr(res_resp, name, None)
         return res_resp
 
@@ -75,14 +77,14 @@ class MiddleSpider(BaseSpider):
             }
             return page_parse
         if not hasattr(res_resp, 'retry'):
-            res_resp.retry = 1
+            res_resp.retry = 10
         return request(retry=res_resp.retry)(func)
 
 
 if __name__ == '__main__':
     tieba = namedtuple('tieba', ['url', 'handler_x'])
-    tieba.url = 'http://tieba.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&pn=100'
-    tieba.handler_x = 'x'
+    tieba.url = 'http://tieba.baidu.com/f?kw=%E8%BF%90%E5%9F%8E%E5%AD%A6%E9%99%A2&ie=utf-8&pn=500'
+    tieba.handler_url = '//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[1]/a/@href/text()'
     s = MiddleSpider(tieba)
     for i in s.run():
         print(i)
