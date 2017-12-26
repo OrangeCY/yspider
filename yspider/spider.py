@@ -104,7 +104,7 @@ class ReqParse:
         return b.session
 
     def _spider_run(self, url):
-        """ 控制代理， 超时。。"""
+        """ 执行真正的请求。控制代理， 超时等设置。。"""
         browser = self.get_browser()
         p = None
         if self.proxy:
@@ -125,6 +125,7 @@ class ReqParse:
         while True:
             try:
                 res = browser.get(url, timeout=self.timeout)
+                logger.info("请求URL--> {}".format(url))
                 return res
             except Timeout:
                 try_times += 1
