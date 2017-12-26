@@ -12,12 +12,9 @@ FORMAT = "%(asctime)-15s %(threadName)s %(filename)s:%(lineno)d %(levelname)s %(
 
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
-
-
 logger = logging.getLogger('newframe')
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-
 
 if __name__ == '__main__':
     logger.debug("wtf")

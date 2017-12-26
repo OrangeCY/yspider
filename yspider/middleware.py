@@ -8,8 +8,6 @@
 
 # 设置请求的url xpath or re ，以及proxy
 
-
-
 from collections import namedtuple
 from yspider.spider import BaseSpider, request
 from lxml import html as HTML
@@ -39,21 +37,11 @@ def convert_handle(res_resp):
                     # setattr(res_resp, name, None)
                     res[name] = None
         return res
-
     return handler
 
 
-
-
-def generate_func(res_resp):
-    pass
-
-
-
-
-
 class MiddleSpider(BaseSpider):
-
+    """ 通过中间构造一层，直接配置好url 正则 或者 xpath从web接过来执行"""
     def __init__(self, res_resp):
         super(MiddleSpider, self).__init__()
         self.res_resp = res_resp
@@ -67,7 +55,7 @@ class MiddleSpider(BaseSpider):
                         'xxx': 're or xpath'
                     }
 
-            """
+        """
         res_resp = self.res_resp
         def func():
             page_parse = {

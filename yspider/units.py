@@ -56,8 +56,7 @@ def init_db(client="mongodb://localhost:27017", db="crawl", coll='crawl'):
     collection = db[coll]
     return collection
 
-
-# test units function
+##  test units function
 
 @func_time_log
 def func_time_test():

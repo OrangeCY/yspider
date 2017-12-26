@@ -4,7 +4,6 @@
 # @Author  : zpy
 # @Software: PyCharm
 
-
 from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
@@ -15,7 +14,6 @@ from functools import wraps
 from collections import deque
 from yspider.logger import logger
 from requests.exceptions import Timeout
-
 
 
 class BaseSpider:
@@ -42,16 +40,12 @@ class Browser:
         self.header = {}
 
 
-
-
 def request(retry=3, retry_code=3, proxy=False):
     """ 通过装饰器来给出可选的配置。 """
     def call(func):
         req = ReqParse(func, retry=retry, proxy=proxy)
         return req
     return call
-
-
 
 
 class ReqParse:
@@ -167,14 +161,6 @@ class ReqParse:
                 return
 
         # todo : 获取更深的链接，加入执行。
-
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
     # results = pool.map(start, urls)

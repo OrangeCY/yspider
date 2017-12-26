@@ -4,7 +4,6 @@
 # @Author  : zpy
 # @Software: PyCharm
 
-
 class SpiderException(Exception):
     """ 根据不同的 Error code来进行不同的判断,
         重试 3
@@ -24,8 +23,6 @@ class SpiderException(Exception):
         TASKERROR: "请求任务出错",
         FUNCERROR: "请构造正确的请求 和 响应"
     }
-
-
 
     def __init__(self, code, msg=None):
         self.code = code
