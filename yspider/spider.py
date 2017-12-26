@@ -13,6 +13,7 @@ from yspider.units import simple_get_http_proxy, retry
 from yspider.exceptions import SpiderException
 from functools import wraps
 from collections import deque
+from yspider.logger import logger
 
 
 
@@ -78,6 +79,7 @@ class ReqParse:
             }
         }
         """
+        print('call', self._req_func)
         r = self._req_func()
         if 'request' in r and 'response' in r:
             _req = r['request']
@@ -96,7 +98,6 @@ class ReqParse:
         return b.session
 
     def run(self):
-        print('call')
         res = []
         self.parse_func()
         if isinstance(self.url, str):
@@ -107,6 +108,7 @@ class ReqParse:
         print(self.url)
         while True:
             u = self.url.popleft()
+            logger.info("req : ", u)
             resp = browser.get(u)
 
             parsed = self.handler(resp)
