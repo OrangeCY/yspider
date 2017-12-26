@@ -163,7 +163,8 @@ class ReqParse:
                 yield res
                 res = []
             if len(self.url) == 0:
-                return res
+                yield res
+                return
 
         # todo : 获取更深的链接，加入执行。
 

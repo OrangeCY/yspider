@@ -24,6 +24,7 @@ def convert_handle(res_resp):
         """ 三种类型的 html json xpath"""
         data = data.content
         xdata = HTML.fromstring(data)
+        res = {}
         for r in dir(res_resp):
             i = r.split('_')
             if i[0] == 'handler':
@@ -31,11 +32,13 @@ def convert_handle(res_resp):
                     name = 'result_' + i[1]
                     _res = "_".join(xdata.xpath(getattr(res_resp, r)))
                     pprint(_res)
-                    setattr(res_resp, name, _res)
+                    # setattr(res_resp, name, _res)
+                    res[name] = _res
                 except Exception as e:
                     logger.info('parse handler -- {}'.format(e))
-                    setattr(res_resp, name, None)
-        return res_resp
+                    # setattr(res_resp, name, None)
+                    res[name] = None
+        return res
 
     return handler
 
