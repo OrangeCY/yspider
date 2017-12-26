@@ -26,22 +26,11 @@ class BaseSpider:
         pass
 
     def _req_resp(self):
-        spider_info = self.req_resp()
-        req = spider_info.get('request', '')
-        if not req:
-            raise SpiderException(SpiderException.TASKERROR)
-        url = req.get('url', '')
-        if not url:
-            raise SpiderException(SpiderException.TASKERROR)
-        header = req.get('header', {})
-        handler = spider_info['response']['handler']
-        print(url)
-        resp = self.session.get(url, headers=header)
-
-        self.result = handler(resp)
+        pass
 
     def run(self):
-        self._req_resp()
+        func = self.req_resp()
+        return func.run()
 
 class Browser:
     """ 模拟浏览器, 具体的请求依靠这个类来实现 """
@@ -55,7 +44,10 @@ class Browser:
 
 def request(retry=3, retry_code=3):
     """ 通过装饰器来给出可选的配置。 """
-    pass
+    def call(func):
+        req = ReqParse(func, retry=retry)
+        return req
+    return call
 
 
 
@@ -65,12 +57,13 @@ class ReqParse:
         检查请求的格式是否正确，根据写入的请求来处理。
     """
 
-    def __init__(self, func, retry=3, proxy=False, new_session=False, req_length=0):
+    def __init__(self, func, retry=3, proxy=False, new_session=False, req_length=0, buffer=10):
         self._req_func = func
         self.retry = retry
         self.proxy = proxy
         self.new_session = new_session
         self.req_length = req_length
+        self.buffer = buffer
 
     def parse_func(self):
         """ 放置请求的函数和 处理返回的函数
@@ -103,16 +96,27 @@ class ReqParse:
         return b.session
 
     def run(self):
+        print('call')
         res = []
         self.parse_func()
-        self.url = deque(self.url)
+        if isinstance(self.url, str):
+            self.url = deque([self.url])
+        else:
+            self.url = deque(self.url)
         browser = self.get_browser()
+        print(self.url)
         while True:
             u = self.url.popleft()
             resp = browser.get(u)
+
             parsed = self.handler(resp)
             res.append(parsed)
-            yield res
+            if len(res) >= self.buffer:
+                yield res
+                res = []
+            if len(self.url) == 0:
+                return res
+
         # todo : 获取更深的链接，加入执行。
 
 
