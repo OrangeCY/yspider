@@ -17,7 +17,7 @@ def func_time_log(func):
     def wrap(*args, **kwargs):
         start = time.time()
         res = func(*args, **kwargs)
-        logger.info("%s run %.2f s" % (func.__name__, time.time()-start))
+        logger.info("function name［%s］ run %.2f s" % (func.__name__, time.time()-start))
         return res
     return wrap
 

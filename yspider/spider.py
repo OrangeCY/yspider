@@ -8,7 +8,7 @@ from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy, retry
+from yspider.units import simple_get_http_proxy, func_time_log
 from yspider.exceptions import SpiderException
 from functools import wraps
 from collections import deque
@@ -21,6 +21,7 @@ class BaseSpider:
     def __init__(self):
         self.header = {}
         self.result = None
+        self.urls = []
 
     def req_resp(self):
         pass
@@ -96,7 +97,7 @@ class ReqParse:
                 raise SpiderException(SpiderException.FUNCERROR)
             else:
                 self.url = _req['url']
-                self.handler = _resp['handler']
+                self.handler = func_time_log(_resp['handler'])
         else:
             raise SpiderException(SpiderException.FUNCERROR)
 
@@ -122,7 +123,7 @@ class ReqParse:
                 }
             logger.info("使用代理: [%s]" %(p))
 
-
+    @func_time_log
     def _spider_run(self, url):
         """ 执行真正的请求。控制代理， 超时等设置。。"""
         browser = self.get_browser()
@@ -133,10 +134,12 @@ class ReqParse:
         while True:
             try:
                 res = browser.get(url, timeout=self.timeout)
+                time.sleep(0.1)
                 logger.info("请求URL--> {}".format(url))
                 return res
             except Timeout:
                 try_times += 1
+                # self.set_proxy(b) # 换 ip。。
                 logger.info("重试 ip: {} url:{} 第{}次".format(p, url, try_times))
                 if try_times >= self.retry:
                     logger.info("超过重试次数 ip: {} url:".format(p, url))
@@ -176,12 +179,12 @@ class ReqParse:
                         res.extend(parsed)
                     else:
                         res.append(parsed)          # 在这里最后返回一层的列表
-                    if len(res) >= self.buffer:
-                        yield res
-                        res = []
-                    if len(self.url) == 0:
-                        yield res
-                        return
+                if len(self.url) == 0:
+                    yield res
+                    return
+            yield res
+            res = []
+
 
         # todo : 获取更深的链接，加入执行。
 

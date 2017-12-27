@@ -89,9 +89,6 @@ def start(url):
 
 
 
-
-
-
 if __name__ == '__main__':
     # results = pool.map(start, urls)
     # print results

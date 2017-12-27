@@ -6,16 +6,21 @@
 
 from yspider.spider import BaseSpider, request
 from lxml import html as HTML
+from yspider.logger import logger
+from yspider.units import init_db
+from urllib.parse import quote
 
 class TiebaSpider(BaseSpider):
 
+
     def req_resp(self):
 
-        @request(retry=3, proxy=True, proxyurl="http://10.10.239.46:8087/proxy?source=pricelineFlight&user=crawler&passwd=spidermiaoji2014")
+        @request(retry=3, proxy=True,
+                 )
         def first_page():
             return {
                 "request":{
-                    'url': 'http://tieba.baidu.com/f?kw=%E5%B1%B1%E8%A5%BF%E5%A4%A7%E5%AD%A6&ie=utf-8&pn=0',
+                    'url': self.urls,
                 },
                 "response":{
                     "handler": self.parse_data
@@ -44,7 +49,7 @@ class TiebaSpider(BaseSpider):
                     data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[2]/div[1]/div/text()'.format(i))[0]
                     link = data.xpath('//*[@id="thread_list"]/li[{}]/div/div[2]/div[1]/div[1]/a/@href'.format(i))[0]
                 except Exception:
-                    print("wtf")
+                    pass
                 if title is not None:
                     res.append({
                         "title": title,
@@ -53,14 +58,40 @@ class TiebaSpider(BaseSpider):
                         "describe": describe,
                         "link": link,
                     })
-        print("result - ", len(res))
+        logger.info("解析成功 {}/48".format(len(res)))
+
         return res
+
+def generate_url(name, num):
+    name = quote(name)
+    return ['http://tieba.baidu.com/f?kw={}&ie=utf-8&pn={}'.format(name, i * 50) for i in range(num)]
+
+
+collection = init_db(coll='山西大学')
+
+def insert_db(data):
+    if data:
+        logger.info("Insert db : {}".format(len(data)))
+        collection.insert_many(data)
+
+
+def main(urls):
+    tieba = TiebaSpider()
+    tieba.urls = urls
+    for i in tieba.run():
+        insert_db(i)
+
 
 
 if __name__ == '__main__':
-    tieba = TiebaSpider()
-    for i in tieba.run():
-        print(i)
+    from multiprocessing.pool import ThreadPool as Pool
+    import time
+    pool = Pool(8)
+    urls = generate_url('山西大学', 100)
+    start = time.time()
+    pool.map(main, urls)
+
+
 
 
 
