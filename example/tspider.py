@@ -9,8 +9,6 @@
 
 
 
-
-
 from pymongo import MongoClient
 from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool

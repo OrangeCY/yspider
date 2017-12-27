@@ -40,10 +40,10 @@ class Browser:
         self.header = {}
 
 
-def request(retry=3, retry_code=3, proxy=False):
+def request(retry=3, retry_code=3, proxy=False, proxyurl=None):
     """ 通过装饰器来给出可选的配置。 """
     def call(func):
-        req = ReqParse(func, retry=retry, proxy=proxy)
+        req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl)
         return req
     return call
 
@@ -53,7 +53,8 @@ class ReqParse:
         检查请求的格式是否正确，根据写入的请求来处理。
     """
 
-    def __init__(self, func, retry=3, proxy=False, new_session=False, req_length=0, buffer=10, timeout=30):
+    def __init__(self, func, retry=3, proxy=False, new_session=False,
+                 req_length=0, buffer=10, timeout=30, proxyurl=None):
         """
 
         :param func: 传入的函数，包含请求信息 和 解析函数
@@ -71,6 +72,8 @@ class ReqParse:
         self.req_length = req_length
         self.buffer = buffer
         self.timeout = timeout
+        self.proxyurl = proxyurl
+
 
     def parse_func(self):
         """ 放置请求的函数和处理返回的函数
@@ -81,7 +84,7 @@ class ReqParse:
                 ...
             }
             "response":{
-                "handler": xxx,
+                "handler": xxx,  # handler最后返回 dict list（一般用在列表页） str
             }
         }
         """
@@ -101,14 +104,12 @@ class ReqParse:
     def get_browser(self):
         """ 获取session"""
         b = Browser()
+        self.set_proxy(b)
         return b.session
 
-    def _spider_run(self, url):
-        """ 执行真正的请求。控制代理， 超时等设置。。"""
-        browser = self.get_browser()
-        p = None
+    def set_proxy(self, browser):
         if self.proxy:
-            p = simple_get_http_proxy()
+            p = simple_get_http_proxy(self.proxyurl)
             if p.startswith('10'): # 内网转发用socks5
                 browser.proxies = {
                     'http': 'socks5://' + p,
@@ -120,6 +121,13 @@ class ReqParse:
                     'https': 'http://' + p,
                 }
             logger.info("使用代理: [%s]" %(p))
+
+
+    def _spider_run(self, url):
+        """ 执行真正的请求。控制代理， 超时等设置。。"""
+        browser = self.get_browser()
+        p = None
+
 
         try_times = 0
         while True:
@@ -137,29 +145,43 @@ class ReqParse:
 
 
     def run(self):
-        """ 执行整套流程"""
+        """
+        执行整套流程
+
+        test = TestSpider()
+        for i in test.run():
+            print(i)         # result
+
+        """
         res = []
-        self.parse_func()
+        self.parse_func() # 将targets_request中的参数解析出来
+
         if isinstance(self.url, str):
             self.url = deque([self.url])
         else:
             self.url = deque(self.url)
 
+        if self.buffer <= 0:
+            self.buffer = 1
+
         while True:
-            u = self.url.popleft()
-            logger.info("request url -- : {}".format(u))
-            resp = self._spider_run(u)
-            if resp is None:
-                logger.info("请求 {} 无数据返回".format(u))
-            else:
-                parsed = self.handler(resp)
-                res.append(parsed)
-            if len(res) >= self.buffer:
-                yield res
-                res = []
-            if len(self.url) == 0:
-                yield res
-                return
+            for _ in range(self.buffer):
+                u = self.url.popleft()
+                resp = self._spider_run(u)
+                if resp is None:
+                    logger.info("请求 {} 无数据返回".format(u))
+                else:
+                    parsed = self.handler(resp) # handler函数最后可能返回 list str dict
+                    if isinstance(parsed, list):
+                        res.extend(parsed)
+                    else:
+                        res.append(parsed)          # 在这里最后返回一层的列表
+                    if len(res) >= self.buffer:
+                        yield res
+                        res = []
+                    if len(self.url) == 0:
+                        yield res
+                        return
 
         # todo : 获取更深的链接，加入执行。
 
