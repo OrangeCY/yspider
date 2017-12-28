@@ -36,11 +36,13 @@ class BaseSpider:
         mongo = MongoClient(client)
         db = mongo[db]
         collection = db[coll]
-        return collection
+        self.collection = collection
 
     def run(self):
         func = self.req_resp()
         return func.run()
+
+
 
 class Browser:
     """ 模拟浏览器, 具体的请求依靠这个类来实现 """
@@ -107,6 +109,7 @@ class ReqParse:
             else:
                 self.urls = _req['url']
                 self.handler = func_time_log(_resp['handler'])
+                self.insert = func_time_log(_resp['insert'])
         else:
             raise SpiderException(SpiderException.FUNCERROR)
 
@@ -195,6 +198,9 @@ class ReqParse:
             yield res
             res = []
 
+    def fk(self, urls):
+        for i in self._con_run(urls):
+            self.insert(i)
 
 
     def run(self):
@@ -208,7 +214,7 @@ class ReqParse:
         if self.concurren > 1:
             pool = Pool(self.concurren)
             urls = split_task(self.urls, self.concurren)
-            return [next(i) for i in pool.map(self._con_run, urls)]  # 这里的每个对象是一个生成器。。 为了和下面同步，直接在这一步执行
+            return pool.map(self.fk, urls)  # 这里的每个对象是一个生成器。。 为了和下面同步，直接在这一步执行
         else:
             return self._con_run(self.urls)
 

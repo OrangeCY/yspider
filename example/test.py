@@ -15,15 +15,16 @@ class TiebaSpider(BaseSpider):
 
     def req_resp(self):
 
-        @request(retry=3, proxy=True, concurren=2,
-                 )
+        @request(retry=3, proxy=True, concurren=10
+
         def first_page():
             return {
                 "request":{
                     'url': self.urls,
                 },
                 "response":{
-                    "handler": self.parse_data
+                    "handler": self.parse_data,
+                    "insert": self.insert,
                 }
 
             }
@@ -62,39 +63,42 @@ class TiebaSpider(BaseSpider):
 
         return res
 
-# 获取url  数据库collection
+    def insert(self, data):
+        """ insert .."""
+        if data:
+            logger.info("Insert db : {}".format(len(data)))
+            self.collection.insert_many(data)
+
 def generate_url(name, num):
     name = quote(name)
     return ['http://tieba.baidu.com/f?kw={}&ie=utf-8&pn={}'.format(name, i * 50) for i in range(*num)]
 
 
-collection = init_db(coll='山西大学')
-
-def insert_db(data):
-    if data:
-        logger.info("Insert db : {}".format(len(data)))
-        collection.insert_many(data)
-
-
-def main(urls):
-    tieba = TiebaSpider()
-    tieba.urls = urls
-    for i in tieba.run():
-        # insert_db(i)
-        print(i, len(i))
-
-
 
 if __name__ == '__main__':
-    from multiprocessing.pool import ThreadPool as Pool
+    # 获取url  数据库collection
     import time
-    # pool = Pool(10)
-    urls = generate_url('山西大学', (10, 15))
     start = time.time()
-    # pool.map(main, urls) # 这里通过一个迭代器来把任务分发到线程池。
-    main(urls)
+    n = (0, 300)
+    def main(urls, u):
+        tieba = TiebaSpider()
+        tieba.urls = urls
+        tieba.set_db(coll=u)
+        print(len(tieba.run()))
+            # insert_db(i)
+            # if i:
+            #     logger.info("Insert db : {}".format(len(i)))
 
-    print("Cost time", time.time()-start)
+    for u in ["四川大学"]:
+
+        # pool = Pool(10)
+        urls = generate_url(u, n)
+        start = time.time()
+        # pool.map(main, urls) # 这里通过一个迭代器来把任务分发到线程池。
+        main(urls, u)
+        cost = time.time() - start
+        logger.info("All Cost time {}, res/{}".format(cost, cost/n[1]))
+        start = time.time()
 
 
 
