@@ -8,16 +8,18 @@ from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy, func_time_log
+from yspider.units import simple_get_http_proxy, func_time_log, split_task
 from yspider.exceptions import SpiderException
 from functools import wraps
 from collections import deque
 from yspider.logger import logger
 from requests.exceptions import Timeout
-
+from multiprocessing.pool import ThreadPool as Pool
+from pymongo import MongoClient
 
 class BaseSpider:
     """ yspider base class , 使用的使用继承这个类。"""
+    collection = None
     def __init__(self):
         self.header = {}
         self.result = None
@@ -28,6 +30,13 @@ class BaseSpider:
 
     def _req_resp(self):
         pass
+
+    def set_db(self,client="mongodb://localhost:27017", db="crawl", coll='crawl'):
+        """初始化mongodb"""
+        mongo = MongoClient(client)
+        db = mongo[db]
+        collection = db[coll]
+        return collection
 
     def run(self):
         func = self.req_resp()
@@ -41,10 +50,10 @@ class Browser:
         self.header = {}
 
 
-def request(retry=3, retry_code=3, proxy=False, proxyurl=None):
+def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=1):
     """ 通过装饰器来给出可选的配置。 """
     def call(func):
-        req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl)
+        req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl, buffer=buffer, concurren=concurren)
         return req
     return call
 
@@ -53,8 +62,7 @@ class ReqParse:
     """ 请求和解析处理
         检查请求的格式是否正确，根据写入的请求来处理。
     """
-
-    def __init__(self, func, retry=3, proxy=False, new_session=False,
+    def __init__(self, func, retry=3, proxy=False, new_session=False, concurren=1,
                  req_length=0, buffer=10, timeout=30, proxyurl=None):
         """
 
@@ -74,6 +82,7 @@ class ReqParse:
         self.buffer = buffer
         self.timeout = timeout
         self.proxyurl = proxyurl
+        self.concurren = concurren
 
 
     def parse_func(self):
@@ -96,7 +105,7 @@ class ReqParse:
             if 'url' not in _req or 'handler' not in _resp:
                 raise SpiderException(SpiderException.FUNCERROR)
             else:
-                self.url = _req['url']
+                self.urls = _req['url']
                 self.handler = func_time_log(_resp['handler'])
         else:
             raise SpiderException(SpiderException.FUNCERROR)
@@ -107,6 +116,7 @@ class ReqParse:
         b = Browser()
         self.set_proxy(b)
         return b.session
+
 
     def set_proxy(self, browser):
         if self.proxy:
@@ -133,10 +143,10 @@ class ReqParse:
         try_times = 0
         while True:
             try:
-                res = browser.get(url, timeout=self.timeout)
+                resp = browser.get(url, timeout=self.timeout)
                 time.sleep(0.1)
                 logger.info("请求URL--> {}".format(url))
-                return res
+                return resp
             except Timeout:
                 try_times += 1
                 # self.set_proxy(b) # 换 ip。。
@@ -146,30 +156,29 @@ class ReqParse:
                     break
 
 
-
-    def run(self):
+    def _con_run(self, urls):
         """
         执行整套流程
 
         test = TestSpider()
         for i in test.run():
             print(i)         # result
-
+        :param urls:
+        :return:
         """
+
         res = []
-        self.parse_func() # 将targets_request中的参数解析出来
-
-        if isinstance(self.url, str):
-            self.url = deque([self.url])
-        else:
-            self.url = deque(self.url)
-
         if self.buffer <= 0:
             self.buffer = 1
 
+        if isinstance(urls, str):
+            urls = deque([urls])
+        else:
+            urls = deque(urls)
+
         while True:
             for _ in range(self.buffer):
-                u = self.url.popleft()
+                u = urls.popleft()
                 resp = self._spider_run(u)
                 if resp is None:
                     logger.info("请求 {} 无数据返回".format(u))
@@ -179,11 +188,33 @@ class ReqParse:
                         res.extend(parsed)
                     else:
                         res.append(parsed)          # 在这里最后返回一层的列表
-                if len(self.url) == 0:
+                if len(urls) == 0:
                     yield res
+                    self.get_browser().close() # 释放链接
                     return
             yield res
             res = []
+
+
+
+    def run(self):
+        """
+
+
+        """
+
+        self.parse_func() # 将targets_request中的参数解析出来 url handler
+
+        if self.concurren > 1:
+            pool = Pool(self.concurren)
+            urls = split_task(self.urls, self.concurren)
+            return [next(i) for i in pool.map(self._con_run, urls)]  # 这里的每个对象是一个生成器。。 为了和下面同步，直接在这一步执行
+        else:
+            return self._con_run(self.urls)
+
+
+
+
 
 
         # todo : 获取更深的链接，加入执行。

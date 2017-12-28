@@ -15,7 +15,7 @@ class TiebaSpider(BaseSpider):
 
     def req_resp(self):
 
-        @request(retry=3, proxy=True,
+        @request(retry=3, proxy=True, concurren=2,
                  )
         def first_page():
             return {
@@ -62,9 +62,10 @@ class TiebaSpider(BaseSpider):
 
         return res
 
+# 获取url  数据库collection
 def generate_url(name, num):
     name = quote(name)
-    return ['http://tieba.baidu.com/f?kw={}&ie=utf-8&pn={}'.format(name, i * 50) for i in range(num)]
+    return ['http://tieba.baidu.com/f?kw={}&ie=utf-8&pn={}'.format(name, i * 50) for i in range(*num)]
 
 
 collection = init_db(coll='山西大学')
@@ -79,20 +80,21 @@ def main(urls):
     tieba = TiebaSpider()
     tieba.urls = urls
     for i in tieba.run():
-        insert_db(i)
+        # insert_db(i)
+        print(i, len(i))
 
 
 
 if __name__ == '__main__':
     from multiprocessing.pool import ThreadPool as Pool
     import time
-    pool = Pool(8)
-    urls = generate_url('山西大学', 100)
+    # pool = Pool(10)
+    urls = generate_url('山西大学', (10, 15))
     start = time.time()
-    pool.map(main, urls)
+    # pool.map(main, urls) # 这里通过一个迭代器来把任务分发到线程池。
+    main(urls)
 
-
-
+    print("Cost time", time.time()-start)
 
 
 

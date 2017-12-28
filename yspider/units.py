@@ -56,6 +56,17 @@ def init_db(client="mongodb://localhost:27017", db="crawl", coll='crawl'):
     collection = db[coll]
     return collection
 
+def split_task(task, num):
+    """[1,2,3,4,5,6] , 3   [[1,2],[3,4],[5,6]]"""
+    lent = len(task)
+    num = lent//num
+    res = []
+    l = 0
+    while l < lent:
+        res.append(task[l: l+num])
+        l += num
+    return res
+
 ##  test units function
 
 @func_time_log
@@ -66,4 +77,5 @@ if __name__ == '__main__':
     # simple_get_http_proxy()
 
 
-    func_time_test()
+    # func_time_test()
+    print(split_task(list(range(100)), 7))
