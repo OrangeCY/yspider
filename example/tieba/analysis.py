@@ -11,6 +11,7 @@ import jieba
 from yspider.utils import init_db
 
 def split_word(cname):
+    """ 通过jieba 分词来把句子分开"""
     coll = init_db(coll=cname)
     with open('./analyresult/describes', 'wb') as f:
         for t in coll.find():
@@ -22,6 +23,7 @@ def split_word(cname):
 
 
 def word_count(fname):
+    """统计词频 """
     res = {}
     with open(fname+'result', 'wb') as w:
         with open(fname, 'rb') as r:
