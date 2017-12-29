@@ -15,7 +15,8 @@ class TiebaSpider(BaseSpider):
 
     def req_resp(self):
 
-        @request(retry=3, proxy=True, concurren=10)
+        @request(retry=3, proxy=True,
+                 concurren=10)
         def first_page():
             return {
                 "request":{
@@ -78,7 +79,7 @@ if __name__ == '__main__':
     # 获取url  数据库collection
     import time
     start = time.time()
-    n = (0, 300)
+    n = (301, 2000)
     def main(urls, u):
         tieba = TiebaSpider()
         tieba.urls = urls
