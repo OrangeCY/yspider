@@ -8,7 +8,7 @@ from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy, func_time_log, split_task
+from yspider.utils import simple_get_http_proxy, func_time_log, split_task
 from yspider.exceptions import SpiderException
 from functools import wraps
 from collections import deque

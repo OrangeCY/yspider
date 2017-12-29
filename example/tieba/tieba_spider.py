@@ -7,7 +7,7 @@
 from yspider.spider import BaseSpider, request
 from lxml import html as HTML
 from yspider.logger import logger
-from yspider.units import init_db
+from yspider.utils import init_db
 from urllib.parse import quote
 
 class TiebaSpider(BaseSpider):
@@ -15,8 +15,7 @@ class TiebaSpider(BaseSpider):
 
     def req_resp(self):
 
-        @request(retry=3, proxy=True, concurren=10
-
+        @request(retry=3, proxy=True, concurren=10)
         def first_page():
             return {
                 "request":{
