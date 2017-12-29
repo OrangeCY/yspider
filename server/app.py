@@ -5,6 +5,9 @@
 # @Software: PyCharm
 
 
+
+
+
 from yspider.middleware import MiddleSpider
 from collections import namedtuple
 from flask import Flask, render_template, request
@@ -22,7 +25,7 @@ def convert(d):
         setattr(n, j, d[i])
     return n
 
-@app.route('/api/spider', methods=['GET', 'POST'])
+@app.route('/api/task', methods=['GET', 'POST'])
 def index():
     # 直接使用动态的页面来获取请求。
     # name [url, handler_x, handler_x]
@@ -32,6 +35,13 @@ def index():
     for t in task.run():
         res.extend(t)
     return json.dumps(res)
+
+@app.route('/analysis')
+def analy():
+    """ 直接展示图 """
+    pass
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
