@@ -4,7 +4,7 @@
 from collections import namedtuple
 
 def convert(d):
-    """ 将通过接口拿过来的请求转化为 namedtuple，传入 """
+    """ web请求 --》 convert --》framework --》 work --》response"""
     n = namedtuple(d.pop('name'), ['url'])
     n.url = d.pop('url')
     for i in d:

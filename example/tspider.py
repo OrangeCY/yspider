@@ -9,14 +9,12 @@
 
 
 
-
-
 from pymongo import MongoClient
 from lxml import html as HTML
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import time
-from yspider.units import simple_get_http_proxy, retry
+from yspider.utils import simple_get_http_proxy, retry
 from yspider.exceptions import SpiderException
 
 # db setting
@@ -88,9 +86,6 @@ def start(url):
     html = req(url)
     pdata = parse(html)
     insert_db(pdata)
-
-
-
 
 
 
