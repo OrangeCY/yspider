@@ -6,21 +6,13 @@
 
 
 from yspider.middleware import MiddleSpider
-from collections import namedtuple
 from flask import Flask, render_template, request
 import json
+from server.utils import convert
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
 
-def convert(d):
-    """ 请求转化为 namedtuple """
-    n = namedtuple(d.pop('name'), ['url'])
-    n.url = d.pop('url')
-    for i in d:
-        j = 'handler_' + i
-        setattr(n, j, d[i])
-    return n
 
 @app.route('/api/spider', methods=['GET', 'POST'])
 def index():
