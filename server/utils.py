@@ -9,6 +9,7 @@ def p_named(named):
     :param named:
     :return:
     """
+    print("namedtuple --> {}".format(named.__name__))
     for i in dir(named):
         if not i.startswith('_'):
             print(i)
@@ -25,7 +26,7 @@ def convert(d):
 if __name__ == '__main__':
     data = {
         'url':'xxx', # 爬取的url
-        'name': 'xxx', # 项目名
+        'name': 'wtf', # 项目名
         # 要获取的值 对应的是xpath 或者 re 或者。。
         'title': 'xxxxx',
         'describe': 'xxxxxx',
