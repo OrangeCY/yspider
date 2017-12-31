@@ -109,7 +109,8 @@ class ReqParse:
             else:
                 self.urls = _req['url']
                 self.handler = func_time_log(_resp['handler'])
-                self.insert = func_time_log(_resp['insert'])
+                if 'insert' in _resp:
+                    self.insert = func_time_log(_resp['insert'])
         else:
             raise SpiderException(SpiderException.FUNCERROR)
 
@@ -149,6 +150,7 @@ class ReqParse:
                 resp = browser.get(url, timeout=self.timeout)
                 time.sleep(0.1)
                 logger.info("请求URL--> {}".format(url))
+                logger.info("响应字段长度--> {}".format(len(resp.content)))
                 return resp
             except Timeout:
                 try_times += 1
