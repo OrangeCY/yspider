@@ -4,10 +4,12 @@
 # @Author  : zpy
 # @Software: PyCharm
 
-from flask_rq import job
-from server.utils import convert
-from yspider.middleware import MiddleSpider
 import json
+
+from flask_rq import job
+
+from web.server import convert
+from yspider.middleware import MiddleSpider
 
 
 @job

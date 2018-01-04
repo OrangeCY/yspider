@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 # @Created on    : 17/12/26 下午6:30
 # @Author  : zpy
-# @Software: PyCharm
+# @Software: PyCharm,
 
-from flask_rq import RQ
-from yspider.middleware import MiddleSpider
-from flask import Flask, render_template, request, jsonify
 import json
-from server.utils import convert
-from server.rq_job import slow_fib, job_spider
 
+from flask import Flask, request, jsonify
+from flask_rq import RQ
+from server.utils import convert
+
+from web.server.rq_job import slow_fib, job_spider
+from yspider.middleware import MiddleSpider
 
 rq = RQ()
 app = Flask(__name__)

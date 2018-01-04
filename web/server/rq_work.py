@@ -6,8 +6,7 @@
 
 from flask_rq import get_worker
 
-from server.app import app
-
+from web.server import app
 
 with app.app_context():
     get_worker().work()
