@@ -9,7 +9,8 @@ from yspider.middleware import MiddleSpider
 from flask import Flask, render_template, request, jsonify
 import json
 from server.utils import convert
-from server.rq_job import slow_fib
+from server.rq_job import slow_fib, job_spider
+
 
 rq = RQ()
 app = Flask(__name__)
@@ -18,6 +19,7 @@ rq.init_app(app)
 
 async_result = {}
 
+# todo fix bug ,
 
 @app.route('/job/test', methods=['GET', 'POST'])
 def test():
@@ -33,6 +35,20 @@ def test():
         'request': n,
         'result': res,
     })
+
+@app.route('/job/spider', methods=['GET', 'POST'])
+def job_sp():
+    """spider job test.."""
+    data = request.json
+    name = data['name']
+    res = None
+    if name in async_result:
+        res = async_result[name].return_value
+    else:
+        async_result[name] = job_spider(data)
+    if res is None:
+        return "Working..."
+    return res
 
 @app.route('/api/task', methods=['GET', 'POST'])
 def index():

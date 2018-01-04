@@ -5,6 +5,23 @@
 # @Software: PyCharm
 
 from flask_rq import job
+from server.utils import convert
+from yspider.middleware import MiddleSpider
+import json
+
+
+@job
+def _spider(data):
+    res = []
+    n = convert(data)
+    task = MiddleSpider(n)
+    for t in task.run():
+        res.extend(t)
+    return json.dumps(res)
+
+def job_spider(data):
+    return _spider.delay(data)
+
 
 @job
 def _slow_fib(n):
@@ -17,3 +34,5 @@ def _slow_fib(n):
 
 def slow_fib(n):
     return _slow_fib.delay(n)
+
+

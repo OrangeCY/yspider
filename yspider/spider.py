@@ -52,7 +52,7 @@ class Browser:
         self.header = {}
 
 
-def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=1):
+def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=2):
     """ 通过装饰器来给出可选的配置。 """
     def call(func):
         req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl, buffer=buffer, concurren=concurren)
@@ -85,6 +85,7 @@ class ReqParse:
         self.timeout = timeout
         self.proxyurl = proxyurl
         self.concurren = concurren
+        self.insert = None
 
 
     def parse_func(self):
@@ -202,7 +203,8 @@ class ReqParse:
 
     def fk(self, urls):
         for i in self._con_run(urls):
-            self.insert(i)
+            if self.insert:
+                self.insert(i)
 
 
     def run(self):
