@@ -52,7 +52,7 @@ class Browser:
         self.header = {}
 
 
-def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=2):
+def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=1):
     """ 通过装饰器来给出可选的配置。 """
     def call(func):
         req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl, buffer=buffer, concurren=concurren)
@@ -64,6 +64,7 @@ class ReqParse:
     """ 请求和解析处理
         检查请求的格式是否正确，根据写入的请求来处理。
     """
+    insert = None
     def __init__(self, func, retry=3, proxy=False, new_session=False, concurren=1,
                  req_length=0, buffer=10, timeout=30, proxyurl=None):
         """
@@ -85,7 +86,6 @@ class ReqParse:
         self.timeout = timeout
         self.proxyurl = proxyurl
         self.concurren = concurren
-        self.insert = None
 
 
     def parse_func(self):
@@ -202,16 +202,15 @@ class ReqParse:
             res = []
 
     def fk(self, urls):
+
         for i in self._con_run(urls):
             if self.insert:
                 self.insert(i)
+            yield i
 
 
     def run(self):
-        """
-
-
-        """
+        """."""
 
         self.parse_func() # 将targets_request中的参数解析出来 url handler
 

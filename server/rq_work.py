@@ -11,3 +11,5 @@ from server.app import app
 
 with app.app_context():
     get_worker().work()
+
+
