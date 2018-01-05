@@ -8,7 +8,7 @@ import json
 
 from flask_rq import job
 
-from web.server import convert
+from server.utils import convert
 from yspider.middleware import MiddleSpider
 
 

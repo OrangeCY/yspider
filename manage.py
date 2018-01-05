@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # @Author  : pengyun
 
-from app import create_app
+from server import create_app
 from flask_script import Manager, Shell, Server
 
 app = create_app('test')
