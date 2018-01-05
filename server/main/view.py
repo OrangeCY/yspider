@@ -6,6 +6,7 @@ from flask import request, jsonify
 from server.rq_job import slow_fib, job_spider
 from . import main
 
+
 async_result = {}
 
 @main.route('/job/test', methods=['GET', 'POST'])
