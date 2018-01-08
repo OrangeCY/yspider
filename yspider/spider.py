@@ -43,14 +43,11 @@ class BaseSpider:
         return func.run()
 
 
-
 class Browser:
     """ 模拟浏览器, 具体的请求依靠这个类来实现 """
-
     def __init__(self):
         self.session = requests.Session()
         self.header = {}
-
 
 def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concurren=1):
     """ 通过装饰器来给出可选的配置。 """
@@ -58,7 +55,6 @@ def request(retry=3, retry_code=3, proxy=False, proxyurl=None, buffer=10, concur
         req = ReqParse(func, retry=retry, proxy=proxy, proxyurl=proxyurl, buffer=buffer, concurren=concurren)
         return req
     return call
-
 
 class ReqParse:
     """ 请求和解析处理
@@ -68,7 +64,6 @@ class ReqParse:
     def __init__(self, func, retry=3, proxy=False, new_session=False, concurren=1,
                  req_length=0, buffer=10, timeout=30, proxyurl=None):
         """
-
         :param func: 传入的函数，包含请求信息 和 解析函数
         :param retry: 重试次数
         :param proxy: 代理
@@ -86,7 +81,6 @@ class ReqParse:
         self.timeout = timeout
         self.proxyurl = proxyurl
         self.concurren = concurren
-
 
     def parse_func(self):
         """ 放置请求的函数和处理返回的函数
@@ -115,13 +109,11 @@ class ReqParse:
         else:
             raise SpiderException(SpiderException.FUNCERROR)
 
-
     def get_browser(self):
         """ 获取session"""
         b = Browser()
         self.set_proxy(b)
         return b.session
-
 
     def set_proxy(self, browser):
         if self.proxy:
@@ -144,7 +136,6 @@ class ReqParse:
         browser = self.get_browser()
         p = None
 
-
         try_times = 0
         while True:
             try:
@@ -161,8 +152,7 @@ class ReqParse:
                     logger.info("超过重试次数 ip: {} url:".format(p, url))
                     break
 
-
-    def _con_run(self, urls):
+    def _coro_run(self, urls):
         """
         执行整套流程
 
@@ -202,16 +192,15 @@ class ReqParse:
             res = []
 
     def fk(self, urls):
-
-        for i in self._con_run(urls):
+        """ 这里直接包装了一层，让系统来调度线程。"""
+        for i in self._coro_run(urls):
             if self.insert:
                 self.insert(i)
             yield i
 
 
     def run(self):
-        """."""
-
+        """.返回列表数据"""
         self.parse_func() # 将targets_request中的参数解析出来 url handler
 
         if self.concurren > 1:
@@ -219,19 +208,13 @@ class ReqParse:
             urls = split_task(self.urls, self.concurren)
             return pool.map(self.fk, urls)  # 这里的每个对象是一个生成器。。 为了和下面同步，直接在这一步执行
         else:
-            return self._con_run(self.urls)
-
-
-
-
-
+            return self._coro_run(self.urls)
 
         # todo : 获取更深的链接，加入执行。
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # results = pool.map(start, urls)
     # print results
     # for i in urls:
     #     start(i)
-    test(10)
 

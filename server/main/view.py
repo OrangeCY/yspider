@@ -12,8 +12,8 @@ except ImportError:  # noqa  # pragma: no cover
     import pickle
 
 from functools import partial
-# Serialize pickle dumps using the highest pickle protocol (binary, default
-# uses ascii)
+
+#　直接使用ｒｑ中带的两个函数
 dumps = partial(pickle.dumps, protocol=pickle.HIGHEST_PROTOCOL)
 loads = pickle.loads
 async_result = {}

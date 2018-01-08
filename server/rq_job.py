@@ -11,7 +11,6 @@ from flask_rq import job
 from server.utils import convert
 from yspider.middleware import MiddleSpider
 
-
 @job
 def _spider(data):
     res = []
@@ -24,15 +23,12 @@ def _spider(data):
 def job_spider(data):
     return _spider.delay(data)
 
-
 @job
 def _slow_fib(n):
     if n <= 1:
         return 1
     else:
         return _slow_fib(n-1) + _slow_fib(n-2)
-
-
 
 def slow_fib(n):
     return _slow_fib.delay(n)
