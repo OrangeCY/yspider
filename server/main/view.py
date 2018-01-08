@@ -2,27 +2,43 @@
 # @Author  : pengyun
 
 from flask import request, jsonify
-
 from server.rq_job import slow_fib, job_spider
 from . import main
+from flask_rq import get_connection
 
+try:
+    import cPickle as pickle
+except ImportError:  # noqa  # pragma: no cover
+    import pickle
 
+from functools import partial
+# Serialize pickle dumps using the highest pickle protocol (binary, default
+# uses ascii)
+dumps = partial(pickle.dumps, protocol=pickle.HIGHEST_PROTOCOL)
+loads = pickle.loads
 async_result = {}
+
+@main.route('/job/<string:id>')
+def job_result(id):
+    conn = get_connection()
+    return str(loads(conn.hget(id, 'result')))
 
 @main.route('/job/test', methods=['GET', 'POST'])
 def test():
     n = request.json['data']
-    res = None
-    if n in async_result:
-        res = async_result[n].return_value
-    else:
-        async_result[n] = slow_fib(n)
-    if res is None:
-        return "Working...."
-    return jsonify({
-        'request': n,
-        'result': res,
-    })
+    key = slow_fib(n).key
+    # res = None
+    # if n in async_result:
+    #     res = async_result[n].return_value
+    # else:
+    #     async_result[n] = slow_fib(n)
+    # if res is None:
+    #     return "Working...."
+    # return jsonify({
+    #     'request': n,
+    #     'result': res,
+    # })
+    return key
 
 @main.route('/job/spider', methods=['GET', 'POST'])
 def job_sp():

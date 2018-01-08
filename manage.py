@@ -8,4 +8,5 @@ app = create_app('test')
 manager = Manager(app)
 
 if __name__ == '__main__':
-    manager.run()
+    # manager.run()
+    app.run(debug=True)
