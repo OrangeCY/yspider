@@ -8,7 +8,7 @@ from flask_rq import get_connection
 
 try:
     import cPickle as pickle
-except ImportError:  # noqa  # pragma: no cover
+except ImportError:
     import pickle
 
 from functools import partial
