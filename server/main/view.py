@@ -6,22 +6,13 @@ from server.rq_job import slow_fib, job_spider
 from . import main
 from flask_rq import get_connection
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
-from functools import partial
-
-#　直接使用ｒｑ中带的两个函数
-dumps = partial(pickle.dumps, protocol=pickle.HIGHEST_PROTOCOL)
-loads = pickle.loads
 async_result = {}
 
 @main.route('/job/<string:id>')
 def job_result(id):
     conn = get_connection()
-    return str(loads(conn.hget(id, 'result')))
+    return str(rq_loads(conn.hget(id, 'result')))
 
 @main.route('/job/test', methods=['GET', 'POST'])
 def test():

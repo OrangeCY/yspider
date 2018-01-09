@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 # @Author  : pengyun
 
-
-
 from collections import namedtuple
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+from functools import partial
+
+#　直接使用ｒｑ中带的两个函数
+rq_dumps = partial(pickle.dumps, protocol=pickle.HIGHEST_PROTOCOL)
+rq_loads = pickle.loads
 
 def p_named(named):
     """
@@ -24,6 +33,7 @@ def convert(d):
         j = 'handler_' + i
         setattr(n, j, d[i])
     return n
+
 
 if __name__ == '__main__':
     data = {
