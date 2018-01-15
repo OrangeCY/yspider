@@ -3,11 +3,30 @@
 
 from flask import request
 from flask_rq import get_connection
+from server.utils import rq_loads, rq_dumps
+from server.models import User, Task, db
 
 from server.jobs.rq_job import slow_fib, job_spider
 from . import main
 
 async_result = {}
+
+@main.route('/register', methods=['GET', 'POST'])
+def register():
+    username = request.json['username']
+    password = request.json['password']
+    email = request.json['email']
+    if User.query.filter_by(email=email).first() is None:
+        u = User(username=username, email=email)
+        u.password = password
+        db.session.add(u)
+        return "Success"
+    return "Already register..."
+
+@main.route('/newtask', methods=['GET', 'POST'])
+def newtask():
+    pass
+
 
 @main.route('/job/<string:id>')
 def job_result(id):

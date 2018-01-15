@@ -9,6 +9,7 @@ from flask_login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 import functools
 import datetime as dt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -83,6 +84,13 @@ class User(Model, UserMixin):
     def get_by_id(uid):
         return User.query.get(uid)
 
+    @property
+    def password(self):
+        return "You can't see you password"
+
+    @password.setter
+    def password(self, psd):
+        self.password_hash = generate_password_hash(psd)
 
 class Task(Model):
     """ 用户创建的任务 ，通过这个id来从mongodb 获取任务的结果"""
