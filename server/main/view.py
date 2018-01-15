@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # @Author  : pengyun
 
-from flask import request, jsonify
-from server.rq_job import slow_fib, job_spider
-from . import main
+from flask import request
 from flask_rq import get_connection
 
+from server.jobs.rq_job import slow_fib, job_spider
+from . import main
 
 async_result = {}
 
