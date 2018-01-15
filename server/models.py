@@ -88,7 +88,7 @@ class Task(Model):
     """ 用户创建的任务 ，通过这个id来从mongodb 获取任务的结果"""
     id = db.Column(db.Integer, primary_key=True) # 生成一个唯一的tid来查询任务
     title = db.Column(db.String(255))
-    describe = db.Column(db.text)
+    describe = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('task', uselist=False))
 

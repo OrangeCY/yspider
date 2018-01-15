@@ -10,9 +10,8 @@ from flask_rq import get_connection, get_queue
 import redis.exceptions
 import rq
 import functools
-
+# todo 将job和user 绑定起来。并且将job 对应的数据保存起来。
 def background_job(f):
     @functools.wraps(f)
     def job_handler(*args, **kwargs):
-        # todo 将job和user 绑定起来。
-        # 并且将job 对应的数据保存起来。
+        pass
