@@ -13,11 +13,11 @@ async_result = {}
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
-    username = request.json['username']
+    username = request.json['name']
     password = request.json['password']
     email = request.json['email']
     if User.query.filter_by(email=email).first() is None:
-        u = User(username=username, email=email)
+        u = User(name=username, email=email)
         u.password = password
         db.session.add(u)
         return "Success"
