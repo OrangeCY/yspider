@@ -3,7 +3,7 @@
 
 
 import requests
-
+from config import host
 
 data = {
     'name': 'tieba',
@@ -12,5 +12,5 @@ data = {
             ],
     'title': '//*[@id="thread_list"]/li[5]/div/div[2]/div[1]/div[1]/a/text()',
 }
-resp = requests.post('http://127.0.0.1:5000/job/spider', json=data)
+resp = requests.post(host + 'spider', json=data)
 print(resp.content)
