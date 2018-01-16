@@ -92,6 +92,9 @@ class User(Model, UserMixin):
     def password(self, psd):
         self.password_hash = generate_password_hash(psd)
 
+    def verify_password(self, psd):
+        return check_password_hash(self.password_hash, psd)
+
 class Task(Model):
     """ 用户创建的任务 ，通过这个id来从mongodb 获取任务的结果"""
     id = db.Column(db.Integer, primary_key=True) # 生成一个唯一的tid来查询任务
@@ -101,5 +104,5 @@ class Task(Model):
     user = db.relationship('User', backref=db.backref('task', uselist=False))
 
     def __repr__(self):
-        return "{} --> {}".format(self.user, self.taskname)
+        return "{} --> {}".format(self.user, self.title)
 

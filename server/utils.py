@@ -2,6 +2,7 @@
 # @Author  : pengyun
 
 from collections import namedtuple
+import time
 
 try:
     import cPickle as pickle
@@ -34,6 +35,12 @@ def convert(d):
         setattr(n, j, d[i])
     return n
 
+def _uuid():
+    """ 时间戳加随机数"""
+    import random
+    s = str(time.time()).split('.')
+    s[1] = str(random.randrange(10, 100))
+    return ''.join(s)
 
 if __name__ == '__main__':
     data = {
@@ -45,3 +52,4 @@ if __name__ == '__main__':
     }
     d = convert(data)
     p_named(d)
+    print([_uuid() for _ in range(100)])

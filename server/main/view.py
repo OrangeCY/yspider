@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # @Author  : pengyun
 
-from flask import request
+from flask import request, redirect
 from flask_rq import get_connection
 from server.utils import rq_loads, rq_dumps
 from server.models import User, Task, db
 
 from server.jobs.rq_job import slow_fib, job_spider
 from . import main
+from flask_login import login_user, logout_user, current_user, login_required
+from server import mongo_store, login_manager, redis_store
 
 async_result = {}
+
+
+@login_manager.user_loader
+def load_user(userid):
+    """callback function"""
+    return User.query.get(int(userid))
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -18,14 +26,34 @@ def register():
     email = request.json['email']
     if User.query.filter_by(email=email).first() is None:
         u = User(name=username, email=email)
+        # todo 暂时只用一个document
+        mongo_store.insert({
+            'name': username,
+            'email': email,
+            'task':[],
+        })
         u.password = password
         db.session.add(u)
         return "Success"
     return "Already register..."
 
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    print(request.json, request.data)
+    email = request.json['email']
+    password = request.json['password']
+    l_user = User.query.filter_by(email=email).first()
+    if l_user and l_user.verify_password(password):
+        login_user(l_user)
+        return "Success"
+    return "Failure"
+
 @main.route('/newtask', methods=['GET', 'POST'])
+@login_required
 def newtask():
-    pass
+    title = request.json['title']
+    describe = request.json['describe']
+    return 'test'
 
 
 @main.route('/job/<string:id>')
