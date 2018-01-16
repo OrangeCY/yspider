@@ -8,6 +8,8 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 host = 'http://127.0.0.1:5000/'
+redis_host, redis_port = 'localhost', 6379
+mongo_host, mongo_port = 'localhost', 27017
 
 class Config:
     SECRET_KEY = 'hard to guess'
