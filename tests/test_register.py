@@ -9,7 +9,7 @@ from config import host
 
 data = {
     'name': 'test',
-    'email': 'test@test.com',
+    'email': 'test@qq.com',
     'password': 'wtf',
 }
 

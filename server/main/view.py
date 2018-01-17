@@ -3,7 +3,7 @@
 
 from flask import request, redirect
 from flask_rq import get_connection
-from server.utils import rq_loads, rq_dumps
+from server.utils import rq_loads, rq_dumps, suuid
 from server.models import User, Task, db
 
 from server.jobs.rq_job import slow_fib, job_spider
@@ -39,7 +39,6 @@ def register():
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
-    print(request.json, request.data)
     email = request.json['email']
     password = request.json['password']
     l_user = User.query.filter_by(email=email).first()
@@ -53,6 +52,15 @@ def login():
 def newtask():
     title = request.json['title']
     describe = request.json['describe']
+    t = Task(title=title, describe=describe)
+    taskdata = request.json['data']
+    taskdata.update({
+        'tid': suuid(),
+    })
+    # 添加到一个列表中
+    mongo_store.update({'email': current_user.email}, {'$push': {'task': taskdata}})
+    db.session.add(t)
+    print(mongo_store.find_one({'email': current_user.email}))
     return 'test'
 
 

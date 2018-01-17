@@ -35,7 +35,7 @@ def convert(d):
         setattr(n, j, d[i])
     return n
 
-def _uuid():
+def suuid():
     """ 时间戳加随机数"""
     import random
     s = str(time.time()).split('.')
@@ -52,4 +52,4 @@ if __name__ == '__main__':
     }
     d = convert(data)
     p_named(d)
-    print([_uuid() for _ in range(100)])
+    print([suuid() for _ in range(100)])

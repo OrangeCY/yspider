@@ -8,7 +8,7 @@ import requests
 from config import host
 
 data = {
-    'email': 'test@test.com',
+    'email': 'test@qq.com',
     'password': 'wtf',
 }
 
@@ -18,6 +18,9 @@ print(requests.post(host + 'login', json=data).content)
 task = {
     'title': 'the first test.',
     'describe': 'wtf',
+    'data':{
+        'testdata':'teststestesstesa',
+    }
 }
 
 print(requests.post(host + 'newtask', json=task, cookies=resp.cookies).content)

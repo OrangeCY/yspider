@@ -12,5 +12,20 @@ def save_data(tid):
 def find_data(tid):
     pass
 
+if __name__ == '__main__':
+    from pymongo import MongoClient
+    db = MongoClient()
+    test = db.test.test
 
+    test.insert({
+        'email':'xxxxxx',
+        'task':[],
+    })
+    task = {
+        'title':'xxx',
+        'tid':'123131313',
+        'body':'yyy',
+    }
+    task_append(test, {'email': 'xxxxxx'}, task)
 
+    print(test.find_one())
