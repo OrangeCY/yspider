@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # @Author  : pengyun
 
-from flask import request, redirect
+from flask import request, redirect, url_for
 from flask_rq import get_connection
 from server.utils import rq_loads, rq_dumps, suuid
 from server.models import User, Task, db
@@ -10,6 +10,7 @@ from server.jobs.rq_job import slow_fib, job_spider
 from . import main
 from flask_login import login_user, logout_user, current_user, login_required
 from server import mongo_store, login_manager, redis_store
+import json
 
 async_result = {}
 
@@ -53,52 +54,40 @@ def newtask():
     title = request.json['title']
     describe = request.json['describe']
     t = Task(title=title, describe=describe)
-    taskdata = request.json['data']
+    taskdata = json.loads(request.json['data'])
+    data = taskdata
     taskdata.update({
         'tid': suuid(),
     })
     # 添加到一个列表中
     mongo_store.update({'email': current_user.email}, {'$push': {'task': taskdata}})
     db.session.add(t)
-    print(mongo_store.find_one({'email': current_user.email}))
-    return 'test'
+    key = job_spider(data).key.decode()
+    return redirect(url_for('.job_result', id=key))
+    # return 'working'
 
 
 @main.route('/job/<string:id>')
 def job_result(id):
+    """ 通过任务id来返回结果 """
     conn = get_connection()
-    return str(rq_loads(conn.hget(id, 'result')))
+    result = conn.hget(id, 'result')
+    if result:
+        return rq_loads(result)
+    return "Working ..."
 
 @main.route('/job/test', methods=['GET', 'POST'])
 def test():
     n = request.json['data']
     key = slow_fib(n).key
-    # res = None
-    # if n in async_result:
-    #     res = async_result[n].return_value
-    # else:
-    #     async_result[n] = slow_fib(n)
-    # if res is None:
-    #     return "Working...."
-    # return jsonify({
-    #     'request': n,
-    #     'result': res,
-    # })
     return key
 
 @main.route('/job/spider', methods=['GET', 'POST'])
 def job_sp():
     """spider job test.."""
     data = request.json
-    name = data['name']
-    res = None
-    if name in async_result:
-        res = async_result[name].return_value
-    else:
-        async_result[name] = job_spider(data)
-    if res is None:
-        return "Working..."
-    return res
+    key = job_spider(data).key.decode()
+    return redirect(url_for('.job_result', id=key))
 
 @main.route('/api/task', methods=['GET', 'POST'])
 def index():
