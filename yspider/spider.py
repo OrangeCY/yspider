@@ -16,8 +16,10 @@ from yspider.logger import logger
 from requests.exceptions import Timeout
 from multiprocessing.pool import ThreadPool as Pool
 from pymongo import MongoClient
+import abc
+from abc import ABCMeta
 
-class BaseSpider:
+class BaseSpider(metaclass=ABCMeta):
     """ yspider base class , 使用的使用继承这个类。"""
     collection = None
     def __init__(self):
@@ -25,11 +27,10 @@ class BaseSpider:
         self.result = None
         self.urls = []
 
+    @abc.abstractmethod
     def req_resp(self):
         pass
 
-    def _req_resp(self):
-        pass
 
     def set_db(self,client="mongodb://localhost:27017", db="crawl", coll='crawl'):
         """初始化mongodb"""
@@ -104,6 +105,12 @@ class ReqParse:
             else:
                 self.urls = _req['url']
                 self.handler = func_time_log(_resp['handler'])
+                self.method = 'get' if 'methods' not in _req else _req['methods']
+                if self.method == 'post':
+                    if 'postdata' in _req:
+                        self.postdata = _req['postdata']
+                    else:
+                        raise SpiderException(SpiderException.FUNCERROR, '如果无post的数据请给一个空字符串。')
                 if 'insert' in _resp:
                     self.insert = func_time_log(_resp['insert'])
         else:
@@ -130,16 +137,26 @@ class ReqParse:
                 }
             logger.info("使用代理: [%s]" %(p))
 
+
     @func_time_log
     def _spider_run(self, url):
         """ 执行真正的请求。控制代理， 超时等设置。。"""
         browser = self.get_browser()
         p = None
-
         try_times = 0
+
+        req_map = {
+            'get': browser.get,
+            'post': browser.post,
+        }
+
         while True:
             try:
-                resp = browser.get(url, timeout=self.timeout)
+                if self.method == 'post':
+                    resp = req_map[self.method](url, timeout=self.timeout, params=self.postdata)
+                elif self.method == 'get':
+                    resp = req_map[self.method](url, timeout=self.timeout)
+
                 time.sleep(0.1)
                 logger.info("请求URL--> {}".format(url))
                 logger.info("响应字段长度--> {}".format(len(resp.content)))
