@@ -24,9 +24,11 @@ def to_dict(named):
             res.append(getattr(named, i))
     return {named.__name__: res}
 
-# 主要是source 名字， 出发日期，到达日期，具体的出发时间， 到达时间，出发城市，到达城市 价格
+# 主要是source 名字， 出发日期，到达日期，具体的出发时间， 到达时间，经过的城市，
+# 经过的机场 机场名字 价格 时间 飞机航班号 作为类型
 # 对于有转机的下划线添加出来。
-flight = namedtuple('Flight', ['source', 'depdate', 'arrdate','deptime', 'arrtime', 'depcity', 'arrcity', 'price'])
+flight = namedtuple('Flight', ['source', 'depdate', 'arrdate','deptime', 'arrtime', 'citys', 'portnames',
+                               'ports', 'price', 'datetimes', 'flight_nos', 'seats'])
 
 
 if __name__ == '__main__':
