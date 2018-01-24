@@ -14,6 +14,8 @@ import json
 from server.jobs.data_model import flight, to_dict
 import random
 import re
+from multiprocessing.pool import ThreadPool as Pool
+
 
 def convert_date(d):
     """ 20180101 --> 2018-01-01"""
@@ -34,7 +36,7 @@ class CsAirSpider(BaseSpider):
         def first_page():
             return {
                 "request": {
-                    'url': self.urls,
+                    'url': 'https://b2c.csair.com/B2C40/query/jaxb/interDirect/query.ao',
                     'methods': 'post',
                     'postdata': data,
                 },
@@ -168,22 +170,23 @@ class FliggySpider(BaseSpider):
             res.append(to_dict(flight))
         return res
 
+def start(spider):
+    return next(spider.run())
 
+def run(task):
+    """ test demo, 多线程跑。 响应时间取决于最慢的
+    """
+    # todo 用更好的方式管理
+    s = time.time()
+    csair = CsAirSpider()
+    csair.task = task
+    fliggy = FliggySpider()
+    fliggy.task = task
+    pool = Pool(4)
+    res = pool.map(start, [csair, fliggy])
+    print("Cost time", time.time()-s)
+    return res
 
 if __name__ == '__main__':
     task = 'BJS&PAR&20180220'
-    # csair = CsAirSpider()
-    # csair.task = task
-    # csair.urls = 'https://b2c.csair.com/B2C40/query/jaxb/interDirect/query.ao'
-    # for i in csair.run():
-    #     print(i)
-    #
-    # {'Flight': ['CsAir', '2018-02-20', '2018-02-20', '2018-02-20T11:55', '2018-02-20T19:00', 'Null',
-    #             '北京_阿姆斯特丹史基浦机场|阿姆斯特丹史基浦机场_巴黎戴高乐机场', 'PEK_AMS|AMS_CDG', '8260',
-    #             '2018-02-20T11:55_2018-02-20T15:30|2018-02-20T17:45_2018-02-20T19:00', 'CZ767_CZ7611',
-    #             'ECONOMY_ECONOMY']}]
-
-    fliggy = FliggySpider()
-    fliggy.task = task
-    for i in fliggy.run():
-        print(i)
+    run(task)
