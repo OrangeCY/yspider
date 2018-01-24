@@ -137,21 +137,36 @@ class FliggySpider(BaseSpider):
         return base_url+fex+fex2
 
     def parse_data(self, resp):
+        """将数据解析出来"""
         res = []
         resp = resp.content.replace(b'{0:', b'{"0":', 1000) # 替换，变成可以loads的
         data = json.loads(self.to_json.search(resp).group(1))
-        _flights = data['data']['flightItems']
+        try:
+            _flights = data['data']['flightItems']
+        except:
+            raise SpiderException(22, "被封掉了。。。")
 
         flight.source = self.source
         for f in _flights:
             finfo = f['flightInfo'][0]
+            segments = finfo['flightSegments']
+
+            arrs, deps = [ i['arrTimeStr'] for i in segments],[ i['depTimeStr'] for i in segments]
+            arrportnames, depportnames = [ i['arrAirportName'] for i in segments],[ i['depAirportName'] for i in segments]
+            arrports, depports = [ i['arrAirportCode'] for i in segments],[ i['depAirportCode'] for i in segments]
 
             flight.deptime, flight.arrtime = finfo['depTimeStr'], finfo['arrTimeStr']
             flight.depdate = flight.deptime[:10]
             flight.arrdate = flight.arrtime[:10]
+            flight.datetimes = '|'.join(['_'.join([i,j]) for i, j in zip(arrs, deps)])
+            flight.flight_nos = '_'.join([i['marketingFlightNo'] for i in segments])
+            flight.seats = '_'.join([i['cabinClassName'] for i in segments])
+            flight.ports = '|'.join(['_'.join([i,j]) for i, j in zip(arrports, depports)])
+            flight.portnames = '|'.join(['_'.join([i, j]) for i, j in zip(arrportnames, depportnames)])
+            flight.price  = f['cardTotalPrice'] // 100
 
-
-        print(data)
+            res.append(to_dict(flight))
+        return res
 
 
 
