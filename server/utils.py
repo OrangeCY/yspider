@@ -42,6 +42,7 @@ def suuid():
     s[1] = str(random.randrange(10, 100))
     return ''.join(s)
 
+
 if __name__ == '__main__':
     data = {
         'url':'xxx', # 爬取的url

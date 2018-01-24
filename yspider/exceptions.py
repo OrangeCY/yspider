@@ -15,13 +15,17 @@ class SpiderException(Exception):
     PARSEBDA = 5
     TASKERROR = 1
     FUNCERROR = -1
+    NORESLT = 7
+    BLOCK = 22
 
     map_error = {
         RETRY: "失败重试",
         RETRYBAD: "重试也失败",
         PARSEBDA: "解析失败",
         TASKERROR: "请求任务出错",
-        FUNCERROR: "请构造正确的请求 和 响应"
+        FUNCERROR: "请构造正确的请求 和 响应",
+        NORESLT: "无想要的结果",
+        BLOCK: "封禁",
     }
 
     def __init__(self, code, msg=None):

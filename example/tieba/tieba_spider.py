@@ -16,7 +16,7 @@ class TiebaSpider(BaseSpider):
     def req_resp(self):
 
         @request(retry=3, proxy=True,
-                 concurren=3)
+                 concurren=10)
         def first_page():
             return {
                 "request":{
@@ -28,7 +28,7 @@ class TiebaSpider(BaseSpider):
                 }
 
             }
-        yield first_page
+        return first_page
 
     def parse_data(self, resp):
         html = resp.content

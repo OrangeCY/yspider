@@ -22,9 +22,12 @@ from abc import ABCMeta
 class BaseSpider(metaclass=ABCMeta):
     """ yspider base class , 使用的使用继承这个类。"""
     collection = None
+    source = None
+
     def __init__(self):
         self.header = {}
         self.result = None
+        self.task = None
         self.urls = []
 
     @abc.abstractmethod
@@ -104,6 +107,7 @@ class ReqParse:
                 raise SpiderException(SpiderException.FUNCERROR)
             else:
                 self.urls = _req['url']
+                self.kw = _req['kw'] if 'kw' in _req else {}
                 self.handler = func_time_log(_resp['handler'])
                 self.method = 'get' if 'methods' not in _req else _req['methods']
                 if self.method == 'post':
@@ -155,7 +159,7 @@ class ReqParse:
                 if self.method == 'post':
                     resp = req_map[self.method](url, timeout=self.timeout, params=self.postdata)
                 elif self.method == 'get':
-                    resp = req_map[self.method](url, timeout=self.timeout)
+                    resp = req_map[self.method](url, timeout=self.timeout, **self.kw)
 
                 time.sleep(0.1)
                 logger.info("请求URL--> {}".format(url))
