@@ -4,7 +4,7 @@
 # @Author  : zpy
 # @Software: PyCharm
 
-
+import time
 from yspider.spider import BaseSpider, request
 from lxml import html as HTML
 from yspider.logger import logger
@@ -12,7 +12,8 @@ from yspider.exceptions import SpiderException
 from urllib.parse import quote
 import json
 from server.jobs.data_model import flight, to_dict
-
+import random
+import re
 
 def convert_date(d):
     """ 20180101 --> 2018-01-01"""
@@ -21,10 +22,6 @@ def convert_date(d):
 class CsAirSpider(BaseSpider):
 
     source = 'CsAir'
-
-    def __init__(self, task):
-        super().__init__()
-        self.task = task
 
     def req_resp(self):
         data = {"depcity": 'PEK', "arrcity": 'CDG', "flightdate": '20180302', "adultnum": "1", "childnum": "0",
@@ -69,6 +66,8 @@ class CsAirSpider(BaseSpider):
     def parse_data(self, data):
         res = []
         data = json.loads(data.content)
+        if 'message' in data:
+            raise SpiderException(7)
         dateflights = data['segment'][0]['dateflight']
         airports = data['airports']
         for f in dateflights:
@@ -91,10 +90,85 @@ class CsAirSpider(BaseSpider):
         return res
 
 
+class FliggySpider(BaseSpider):
+
+    source = 'Fliggy'
+
+    to_json = re.compile(b'\((.*)\)')
+
+    def req_resp(self):
+        @request(retry=3)
+        def first_page():
+            self.urls = self.parse_task(self.task)
+            return {
+                "request": {
+                    'url': self.urls,
+                    'kw': {
+                        'headers': {
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:51.0) Gecko/20100101 Firefox/51.0'},
+                    }
+                },
+                "response": {
+                    "handler": self.parse_data,
+                }
+
+            }
+
+        return first_page
+
+    def parse_task(self, task):
+
+        try:
+            dep, arr, date = task.split('&')
+        except ValueError:
+            raise SpiderException(12, 'check task')
+
+        date = convert_date(date)
+        rand = random.randint(3000, 4000)
+        _timestamp = str(time.time()).replace('.', '')[:13]
+
+        fex = quote('[{"depCityCode":"%s","arrCityCode":"%s","depDate":"%s"}]' % (dep, arr, date))
+
+        base_url = 'https://sijipiao.fliggy.com/ie/flight_search_result_poller.do?src=filter&_ksTS={}_{}&callback=jsonp' \
+                   '{}&supportMultiTrip=true&searchBy=1280&searchJourney='.format(_timestamp, str(rand), str(rand + 1))
+
+        fex2 = '&tripType=0&searchCabinType=0&agentId=-1&searchMode=0&b2g=0&formNo=-1&cardId=&needMemberPrice='
+
+        return base_url+fex+fex2
+
+    def parse_data(self, resp):
+        res = []
+        resp = resp.content.replace(b'{0:', b'{"0":', 1000) # 替换，变成可以loads的
+        data = json.loads(self.to_json.search(resp).group(1))
+        _flights = data['data']['flightItems']
+
+        flight.source = self.source
+        for f in _flights:
+            finfo = f['flightInfo'][0]
+
+            flight.deptime, flight.arrtime = finfo['depTimeStr'], finfo['arrTimeStr']
+            flight.depdate = flight.deptime[:10]
+            flight.arrdate = flight.arrtime[:10]
+
+
+        print(data)
+
+
+
 if __name__ == '__main__':
-    task = 'PEK&CDG&20180220'
-    csair = CsAirSpider(task)
-    csair.task = task
-    csair.urls = 'https://b2c.csair.com/B2C40/query/jaxb/interDirect/query.ao'
-    for i in csair.run():
+    task = 'BJS&PAR&20180220'
+    # csair = CsAirSpider()
+    # csair.task = task
+    # csair.urls = 'https://b2c.csair.com/B2C40/query/jaxb/interDirect/query.ao'
+    # for i in csair.run():
+    #     print(i)
+    #
+    # {'Flight': ['CsAir', '2018-02-20', '2018-02-20', '2018-02-20T11:55', '2018-02-20T19:00', 'Null',
+    #             '北京_阿姆斯特丹史基浦机场|阿姆斯特丹史基浦机场_巴黎戴高乐机场', 'PEK_AMS|AMS_CDG', '8260',
+    #             '2018-02-20T11:55_2018-02-20T15:30|2018-02-20T17:45_2018-02-20T19:00', 'CZ767_CZ7611',
+    #             'ECONOMY_ECONOMY']}]
+
+    fliggy = FliggySpider()
+    fliggy.task = task
+    for i in fliggy.run():
         print(i)
