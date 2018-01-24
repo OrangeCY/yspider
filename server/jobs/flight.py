@@ -160,7 +160,7 @@ class FliggySpider(BaseSpider):
             flight.arrdate = flight.arrtime[:10]
             flight.datetimes = '|'.join(['_'.join([i,j]) for i, j in zip(arrs, deps)])
             flight.flight_nos = '_'.join([i['marketingFlightNo'] for i in segments])
-            flight.seats = '_'.join([i['cabinClassName'] for i in segments])
+            flight.seats = finfo.get('cabinClassName', '经济舱')
             flight.ports = '|'.join(['_'.join([i,j]) for i, j in zip(arrports, depports)])
             flight.portnames = '|'.join(['_'.join([i, j]) for i, j in zip(arrportnames, depportnames)])
             flight.price  = f['cardTotalPrice'] // 100
