@@ -15,7 +15,7 @@ class TiebaSpider(BaseSpider):
 
     def req_resp(self):
 
-        @request(retry=3, proxy=True,
+        @request(retry=3,
                  concurren=10)
         def first_page():
             return {
@@ -79,22 +79,18 @@ if __name__ == '__main__':
     # 获取url  数据库collection
     import time
     start = time.time()
-    n = (301, 2000)
+    n = (301, 305)
     def main(urls, u):
         tieba = TiebaSpider()
         tieba.urls = urls
         tieba.set_db(coll=u)
-        print(len(tieba.run()))
-            # insert_db(i)
-            # if i:
-            #     logger.info("Insert db : {}".format(len(i)))
+        for i in tieba.run():
+            print(i)
 
     for u in ["四川大学"]:
 
-        # pool = Pool(10)
         urls = generate_url(u, n)
         start = time.time()
-        # pool.map(main, urls) # 这里通过一个迭代器来把任务分发到线程池。
         main(urls, u)
         cost = time.time() - start
         logger.info("All Cost time {}, res/{}".format(cost, cost/n[1]))

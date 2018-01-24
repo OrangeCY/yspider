@@ -214,10 +214,12 @@ class ReqParse:
 
     def fk(self, urls):
         """ 这里直接包装了一层，让系统来调度线程。"""
+        res = []
         for i in self._coro_run(urls):
             if self.insert:
                 self.insert(i)
-            yield i
+            res.extend(i)
+        return res
 
 
     def run(self):

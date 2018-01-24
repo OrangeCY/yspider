@@ -60,6 +60,8 @@ def split_task(task, num):
     """[1,2,3,4,5,6] , 3   [[1,2],[3,4],[5,6]]"""
     lent = len(task)
     num = lent//num
+    if num == 0:
+        num = 1
     res = []
     l = 0
     while l < lent:
